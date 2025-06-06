@@ -1,6 +1,7 @@
 import sys
 import json
 import os
+from collections import Counter
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QLineEdit, QPushButton, QListWidget, QMessageBox
@@ -78,6 +79,10 @@ class KsiazkaAdresowa(QWidget):
         self.usunButton.clicked.connect(self.usun_kontakt)
         prawaKolumna.addWidget(self.usunButton)
 
+        self.statystykiButton = QPushButton("Pokaż statystyki")
+        self.statystykiButton.clicked.connect(self.pokaz_statystyki)
+        prawaKolumna.addWidget(self.statystykiButton)
+
         layout.addLayout(lewaKolumna, 2)
         layout.addLayout(prawaKolumna, 3)
         self.setLayout(layout)
@@ -154,6 +159,24 @@ class KsiazkaAdresowa(QWidget):
                 self.filtruj_kontakty()
             except Exception as e:
                 QMessageBox.critical(self, "Blad odczytu", str(e))
+
+    def pokaz_statystyki(self):
+        if not self.kontakty:
+            QMessageBox.information(self, "Statystyki", "Brak danych do analizy.")
+            return
+
+        imiona = Counter(k["imie"] for k in self.kontakty)
+        nazwiska = Counter(k["nazwisko"] for k in self.kontakty)
+        miasta = Counter(k["miasto"] for k in self.kontakty)
+
+        stat_text = "Statystyki:\n\n"
+
+        stat_text += "Imiona:\n" + "\n".join(f"{k}: {v}" for k, v in imiona.items()) + "\n\n"
+        stat_text += "Nazwiska:\n" + "\n".join(f"{k}: {v}" for k, v in nazwiska.items()) + "\n\n"
+        stat_text += "Miasta:\n" + "\n".join(f"{k}: {v}" for k, v in miasta.items())
+
+        QMessageBox.information(self, "Statystyki kontaktów", stat_text)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
